@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h>
 
 static char	*join_remainder_and_buffer(char *remainder, char *buffer)
 {
@@ -32,10 +31,14 @@ static char	*get_line_to_lf(char *remainder)
 	line = NULL;
 	len = 0;
 	if (!remainder[len])
+	{
 		return (line);
+	}
 	while (remainder[len] && remainder[len] != '\n')
 		len++;
 	line = (char *)malloc(sizeof(char) * len + 2);
+	if (!line)
+		return (NULL);
 	len = 0;
 	while (remainder[len] && remainder[len] != '\n')
 	{
@@ -69,13 +72,25 @@ static char	*find_linefeed(int fd, char *remainder, char *buffer)
 	return (NULL);
 }
 
+char	*set_remainder(char *remainder, char *line)
+{
+	char	*tmp;
+	size_t	len_r;
+	size_t	len_l;
+
+	len_r = ft_strlen(remainder);
+	len_l = ft_strlen(line);
+	tmp = remainder;
+	remainder = ft_substr(remainder, (unsigned int)len_l, len_r - len_l);
+	free(tmp);
+	return (remainder);
+}
+
 char	*get_next_line(int fd)
 {
 	static char	*remainder;
 	char		*line;
 	char		*buffer;
-	char		*tmp;
-	size_t		len;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
@@ -87,9 +102,11 @@ char	*get_next_line(int fd)
 	if (!remainder)
 		return (NULL);
 	line = get_line_to_lf(remainder);
-	len = ft_strlen(line);
-	tmp = remainder;
-	remainder = ft_substr(remainder, len, ft_strlen(remainder) - len);
-	free(tmp);
+	if (line == NULL)
+	{
+		free(remainder);
+		return (NULL);
+	}
+	remainder = set_remainder(remainder, line);
 	return (line);
 }
