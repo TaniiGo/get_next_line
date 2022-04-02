@@ -6,11 +6,12 @@
 /*   By: keitanig <keitanig@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/13 21:36:46 by keitanig          #+#    #+#             */
-/*   Updated: 2022/03/02 18:51:39 by keitanig         ###   ########.fr       */
+/*   Updated: 2022/03/03 21:52:20 by keitanig         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <stdio.h>
 
 static char	*join_remainder_and_buffer(char *remainder, char *buffer)
 {
@@ -23,21 +24,27 @@ static char	*join_remainder_and_buffer(char *remainder, char *buffer)
 	return (remainder);
 }
 
-static char	*adjust_remainder(char *line)
+static char	*get_line_to_lf(char *remainder)
 {
-	char			*ret;
-	unsigned int	i;
+	char		*line;
+	size_t		len;
 
-	ret = NULL;
-	i = 0;
-	while (line[i] && line[i] != '\n')
-		i++;
-	if (!line[i])
-		return (ret);
-	if (line[i + 1])
-		ret = ft_substr(line, i + 1, ft_strlen(line) - (i + 1));
-	line[i + 1] = '\0';
-	return (ret);
+	line = NULL;
+	len = 0;
+	if (!remainder[len])
+		return (line);
+	while (remainder[len] && remainder[len] != '\n')
+		len++;
+	line = (char *)malloc(sizeof(char) * len + 2);
+	len = 0;
+	while (remainder[len] && remainder[len] != '\n')
+	{
+		line[len] = remainder[len];
+		len++;
+	}
+	line[len] = remainder[len];
+	line[len + 1] = '\0';
+	return (line);
 }
 
 static char	*find_linefeed(int fd, char *remainder, char *buffer)
@@ -67,16 +74,22 @@ char	*get_next_line(int fd)
 	static char	*remainder;
 	char		*line;
 	char		*buffer;
+	char		*tmp;
+	size_t		len;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	buffer = (char *)malloc(sizeof(char) * ((size_t)BUFFER_SIZE + 1));
 	if (!buffer)
 		return (NULL);
-	line = find_linefeed(fd, remainder, buffer);
+	remainder = find_linefeed(fd, remainder, buffer);
 	free(buffer);
-	if (!line)
+	if (!remainder)
 		return (NULL);
-	remainder = adjust_remainder(line);
+	line = get_line_to_lf(remainder);
+	len = ft_strlen(line);
+	tmp = remainder;
+	remainder = ft_substr(remainder, len, ft_strlen(remainder) - len);
+	free(tmp);
 	return (line);
 }
