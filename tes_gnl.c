@@ -21,6 +21,6 @@ int main(int ac, char **av)
 		free(line);
 		i++;
 	} while (line != NULL);
-	system("leaks a.out");
+	// system("leaks a.out");
 	return (0);
 }
